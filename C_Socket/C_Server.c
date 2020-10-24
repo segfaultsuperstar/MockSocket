@@ -16,7 +16,7 @@
 int servSocket;
 int incomingSocket;
 struct sockaddr_in clientInfo;
-
+int requests = 0;
 // Print the error and quit.
 void diep(char *s)
 {
@@ -34,27 +34,28 @@ void reverseString(char s[])
 		stringReversed[i] = s[length];
 		length--;
 	}
-	
+	printf("String Reversed: %s\n",stringReversed);
 	memcpy(s,stringReversed,10);
+
+	
 
 }
 
 void *clientHandler(void *cl)
-{	
+{
+	
+	
 	int messageSize;
 	int length = 11;
 	char data[11];
 	int thisSocket = incomingSocket; // need to reasign here because incoming socket
 									 // is reassigned during accept
-	int requests = 0;
 
 	while(requests < 10)
 	{
-
 		if ((messageSize = recv(thisSocket,data,length,MSG_WAITALL)) < 0)
 		{
 			diep("recv() failed");
-
 		}
 		
 
@@ -65,18 +66,22 @@ void *clientHandler(void *cl)
 		requests++;
 		fflush(stdout);
 		sleep(1);
-
 		
 	}
-	
 	pthread_exit(0);
+
+	
 }
 
 
 void setupServer()
 {
+	
+	
 	struct sockaddr_in serverInfo;
 	
+	
+
 	// Sets up the socket
 	if ((servSocket = socket(PF_INET,SOCK_STREAM,IPPROTO_TCP)) < 0)
 	    diep("socket() failed");
@@ -95,19 +100,22 @@ void setupServer()
 		diep("listen() failed");
 
 
-	pthread_t clientThread; //the thread to be created
-	int clientLen = sizeof(clientInfo);
+pthread_t clientThread; //the thread to be created
+int clientLen = sizeof(clientInfo);
 
 
-	//Server continuously loops looking for new connections
+//Server continuously loops looking for new connections
 	while(1)
 	{
+	
 
-		//Creates a new thread for each new accepted connection
-		while((incomingSocket = accept(servSocket,(struct sockaddr*)&clientInfo,(socklen_t*)&clientLen)))
-		{
+
+	//Creates a new thread for each new accepted connection
+	while((incomingSocket = accept(servSocket,(struct sockaddr*)&clientInfo,(socklen_t*)&clientLen)))
+		
+	{
 			pthread_create(&clientThread, NULL, &clientHandler, NULL);
-		}
+	}
 
 	//Thread returns here after 10 messages sent
 	pthread_join(clientThread, NULL);
